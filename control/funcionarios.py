@@ -15,14 +15,17 @@ def criar_funcionarios():
     email = request.form.get("email")
     matricula = request.form.get("matricula")
     apelido = request.form.get("apelido")
+    senha = request.form.get("senha")
     # SQL
     sql = text("""
                 INSERT INTO funcionarios 
-                    (nome_completo, email, matricula, apelido) 
+                    (nome_completo, email, matricula, apelido, senha) 
                 VALUES 
-                    (:nome_temp, :email, :matricula, :apelido) 
+                    (:nome_temp, :email, :matricula, :apelido, :senha) 
+                RETURNING id
+                
                 """)
-    dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido}
+    dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido, "senha": senha}
 
     try:
         # executar consulta
@@ -79,15 +82,19 @@ def atualizar_funcionarios(matricula):
     email = request.form.get("email")
     matricula_nova = request.form.get("matricula", matricula)
     apelido = request.form.get("apelido")
+    senha = request.form.get("senha")
 
     sql = text("""UPDATE funcionarios SET 
-                        nome_completo = :nome_funcionario, email = :email, apelido = :apelido, 
+                        nome_completo = :nome_funcionario, email = :email, apelido = :apelido,
+                        senha = :senha,
                         matricula = :matricula_nova 
                     WHERE matricula = :matricula""")
     
     dados = {   "nome_funcionario": nome, 
                 "matricula_nova": matricula_nova, 
-                "email": email, "apelido": apelido, "matricula": matricula }
+                "email": email, "apelido": apelido,
+                "senha": senha,
+                "matricula": matricula }
 
     try:
         result = db.session.execute(sql, dados)
