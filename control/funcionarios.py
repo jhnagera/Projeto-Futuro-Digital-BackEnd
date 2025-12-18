@@ -14,14 +14,15 @@ def criar_funcionarios():
     nome_front = request.form.get("nome_funcionario")
     email = request.form.get("email")
     matricula = request.form.get("matricula")
+    apelido = request.form.get("apelido")
     # SQL
     sql = text("""
                 INSERT INTO funcionarios 
-                    (nome_completo, email, matricula) 
+                    (nome_completo, email, matricula, apelido) 
                 VALUES 
-                    (:nome_temp, :email, :matricula) 
+                    (:nome_temp, :email, :matricula, :apelido) 
                 """)
-    dados = {"nome_temp": nome_front, "email": email, "matricula": matricula}
+    dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido}
 
     try:
         # executar consulta
@@ -39,7 +40,7 @@ def criar_funcionarios():
 # Ler um (Select by ID)
 @funcionarios_bp.route('/<matricula>')
 def get_funcionarios(matricula):
-    sql = text("SELECT * FROM funcionario WHERE matricula = :matricula")
+    sql = text("SELECT * FROM funcionarios WHERE matricula = :matricula")
     dados = {"matricula": matricula}
     
     try:
@@ -76,10 +77,17 @@ def atualizar_funcionarios(matricula):
     # dados que vieram
     nome = request.form.get("nome_funcionario")
     email = request.form.get("email")
-    matricula = request.form.get("matricula")
+    matricula_nova = request.form.get("matricula", matricula)
+    apelido = request.form.get("apelido")
 
-    sql = text("UPDATE funcionarios SET nome_funcionario = :nome, email = :email, matricula = :matricula WHERE matricula = :matricula")
-    dados = {"nome_funcionario": nome, "email": email, "matricula": matricula, "matricula": matricula}
+    sql = text("""UPDATE funcionarios SET 
+                        nome_completo = :nome_funcionario, email = :email, apelido = :apelido, 
+                        matricula = :matricula_nova 
+                    WHERE matricula = :matricula""")
+    
+    dados = {   "nome_funcionario": nome, 
+                "matricula_nova": matricula_nova, 
+                "email": email, "apelido": apelido, "matricula": matricula }
 
     try:
         result = db.session.execute(sql, dados)
@@ -87,7 +95,7 @@ def atualizar_funcionarios(matricula):
         
         if linhas_afetadas == 1: 
             db.session.commit()
-            return f"Funcionário {id} atualizado com sucesso"
+            return f"Funcionário {matricula} atualizado com sucesso"
         else:
             db.session.rollback()
             return f"Funcionário não encontrado ou erro ao atualizar"
