@@ -5,7 +5,7 @@
 -- Dumped from database version 16.1
 -- Dumped by pg_dump version 16.1
 
--- Started on 2025-12-16 11:10:57
+-- Started on 2025-12-18 11:23:21
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -30,7 +30,9 @@ SET default_table_access_method = heap;
 CREATE TABLE public.funcionarios (
     nome_completo text NOT NULL,
     matricula bigint NOT NULL,
-    email text NOT NULL
+    email text NOT NULL,
+    apelido text NOT NULL,
+    senha text NOT NULL
 );
 
 
@@ -42,7 +44,8 @@ ALTER TABLE public.funcionarios OWNER TO postgres;
 -- Data for Name: funcionarios; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-INSERT INTO public.funcionarios (nome_completo, matricula, email) VALUES ('José Henrique Luttjohann Nágera', 66621, 'jnagera@trt4.jus.br');
+INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha) VALUES ('José Augusto Neves da Fontoura', 68600, 'ja@trt4.jus.br', 'Augusto', '1234');
+INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha) VALUES ('José Henrique Luttjohann Nágera', 66621, 'jh@trt4.jus.br', 'Henrique', '12345');
 
 
 --
@@ -54,7 +57,7 @@ ALTER TABLE ONLY public.funcionarios
     ADD CONSTRAINT funcionarios_pkey PRIMARY KEY (matricula);
 
 
--- Completed on 2025-12-16 11:10:57
+-- Completed on 2025-12-18 11:23:21
 
 --
 -- PostgreSQL database dump complete
