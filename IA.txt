@@ -1,1 +1,73 @@
 !!!!!!COLOCAR AQUI TODAS AS PERGUNTAS FEITAS NA IA!!!!!!!
+Pergunta 1:
+com base no codigo apresentado, criar um codigo em python para fazer login, o login deve ser pela matricula do funcionario e pela senha
+
+Thought for 3s
+
+Analyzed
+funcionarios.py#L1-131
+Analyzed
+dnEkcaB-latigiD-orutuF-otejorP\dnEkcaB latigiD orutuF otejorP\oãçamargorP\potkseD\resU\sresU\:c
+Entendi! Você tem um CRUD de funcionários em Flask e quer adicionar uma funcionalidade de login usando matrícula e senha. Vou adicionar uma rota de login no seu arquivo 
+funcionarios.py
+:
+
+Edited
+funcionarios.py
++42
+-0
+Pronto! ✅ Adicionei a rota de login no seu arquivo 
+funcionarios.py
+.
+
+Como usar a rota de login:
+Endpoint: POST /funcionarios/login
+
+Parâmetros (form-data):
+
+matricula - Matrícula do funcionário
+senha - Senha do funcionário
+
+#feito por IA
+# -------------------- LOGIN --------------------
+@funcionarios_bp.route("/login", methods=["POST"])
+def login_funcionario():
+    # Dados recebidos do frontend
+    matricula = request.form.get("matricula")
+    senha = request.form.get("senha")
+    
+    # Validação dos campos obrigatórios
+    if not matricula or not senha:
+        return {"sucesso": False, "mensagem": "Matrícula e senha são obrigatórios"}, 400
+    
+    # SQL para buscar funcionário pela matrícula
+    sql = text("SELECT * FROM funcionarios WHERE matricula = :matricula")
+    dados = {"matricula": matricula}
+    
+    try:
+        result = db.session.execute(sql, dados)
+        linhas = result.mappings().all()
+        
+        # Verifica se o funcionário existe
+        if len(linhas) == 0:
+            return {"sucesso": False, "mensagem": "Funcionário não encontrado"}, 404
+        
+        funcionario = dict(linhas[0])
+        
+        # Verifica se a senha está correta
+        if funcionario.get("senha") != senha:
+            return {"sucesso": False, "mensagem": "Senha incorreta"}, 401
+        
+        # Remove a senha do retorno por segurança
+        funcionario.pop("senha", None)
+        
+        return {
+            "sucesso": True, 
+            "mensagem": "Login realizado com sucesso",
+            "funcionario": funcionario
+        }, 200
+        
+    except Exception as e:
+        return {"sucesso": False, "mensagem": f"Erro ao realizar login: {str(e)}"}, 500
+
+Pergunta 2:

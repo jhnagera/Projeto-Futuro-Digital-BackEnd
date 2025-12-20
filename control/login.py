@@ -17,3 +17,44 @@ def paginaVariavel(senha):
     return senha
 
 
+#feito por IA, não testei ainda!!!!!
+# -------------------- LOGIN --------------------
+@funcionarios_bp.route("/login", methods=["POST"])
+def login_funcionario():
+    # Dados recebidos do frontend
+    matricula = request.form.get("matricula")
+    senha = request.form.get("senha")
+    
+    # Validação dos campos obrigatórios
+    if not matricula or not senha:
+        return {"sucesso": False, "mensagem": "Matrícula e senha são obrigatórios"}, 400
+    
+    # SQL para buscar funcionário pela matrícula
+    sql = text("SELECT * FROM funcionarios WHERE matricula = :matricula")
+    dados = {"matricula": matricula}
+    
+    try:
+        result = db.session.execute(sql, dados)
+        linhas = result.mappings().all()
+        
+        # Verifica se o funcionário existe
+        if len(linhas) == 0:
+            return {"sucesso": False, "mensagem": "Funcionário não encontrado"}, 404
+        
+        funcionario = dict(linhas[0])
+        
+        # Verifica se a senha está correta
+        if funcionario.get("senha") != senha:
+            return {"sucesso": False, "mensagem": "Senha incorreta"}, 401
+        
+        # Remove a senha do retorno por segurança
+        funcionario.pop("senha", None)
+        
+        return {
+            "sucesso": True, 
+            "mensagem": "Login realizado com sucesso",
+            "funcionario": funcionario
+        }, 200
+        
+    except Exception as e:
+        return {"sucesso": False, "mensagem": f"Erro ao realizar login: {str(e)}"}, 500
