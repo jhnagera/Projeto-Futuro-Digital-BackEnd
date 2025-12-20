@@ -5,21 +5,21 @@ from conf.database import db
 
 login_bp = Blueprint('login', __name__, url_prefix = '/login') 
 
-@app.route("/", methods=["POST"])
-def criar_login():
-    nome = request.form.get("nome", " Você deveria enviar um nome")
-    return  f"Seu nome é  {nome.upper()}  e em minusculo {nome.lower()}"
+# @app.route("/", methods=["POST"])
+# def criar_login():
+#     nome = request.form.get("nome", " Você deveria enviar um nome")
+#     return  f"Seu nome é  {nome.upper()}  e em minusculo {nome.lower()}"
 
-@app.route("/", <senha>')
-def paginaVariavel(senha):
-    if senha == '1234':
-        return "Isso não deveria ser uma senha"
-    return senha
+# @app.route("/", <senha>')
+# def paginaVariavel(senha):
+#     if senha == '1234':
+#         return "Isso não deveria ser uma senha"
+#     return senha
 
 
 #feito por IA, não testei ainda!!!!!
 # -------------------- LOGIN --------------------
-@funcionarios_bp.route("/login", methods=["POST"])
+@login_bp.route("/", methods=["POST"])
 def login_funcionario():
     # Dados recebidos do frontend
     matricula = request.form.get("matricula")
