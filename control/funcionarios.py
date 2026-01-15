@@ -16,16 +16,18 @@ def criar_funcionarios():
     matricula = request.form.get("matricula")
     apelido = request.form.get("apelido")
     senha = request.form.get("senha")
+    horario_inicio = request.form.get("horario_inicio")
+    horario_fim = request.form.get("horario_fim")
     # SQL
     sql = text("""
                 INSERT INTO funcionarios 
-                    (nome_completo, email, matricula, apelido, senha) 
+                    (nome_completo, email, matricula, apelido, senha, horario_inicio, horario_fim) 
                 VALUES 
-                    (:nome_temp, :email, :matricula, :apelido, :senha) 
+                    (:nome_temp, :email, :matricula, :apelido, :senha, :horario_inicio, :horario_fim) 
                 RETURNING id
                 
                 """)
-    dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido, "senha": senha}
+    dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido, "senha": senha, "horario_inicio": horario_inicio, "horario_fim": horario_fim}
 
     try:
         # executar consulta
@@ -83,18 +85,23 @@ def atualizar_funcionarios(matricula):
     matricula_nova = request.form.get("matricula", matricula)
     apelido = request.form.get("apelido")
     senha = request.form.get("senha")
-
+    horario_inicio = request.form.get("horario_inicio")
+    horario_fim = request.form.get("horario_fim")
     sql = text("""UPDATE funcionarios SET 
                         nome_completo = :nome_funcionario, email = :email, apelido = :apelido,
                         senha = :senha,
-                        matricula = :matricula_nova 
+                        matricula = :matricula_nova,
+                        horario_inicio = :horario_inicio,
+                        horario_fim = :horario_fim 
                     WHERE matricula = :matricula""")
     
     dados = {   "nome_funcionario": nome, 
                 "matricula_nova": matricula_nova, 
                 "email": email, "apelido": apelido,
                 "senha": senha,
-                "matricula": matricula }
+                "matricula": matricula,
+                "horario_inicio": horario_inicio,
+                "horario_fim": horario_fim   }
 
     try:
         result = db.session.execute(sql, dados)
