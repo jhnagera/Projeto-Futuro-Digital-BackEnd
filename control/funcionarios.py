@@ -23,9 +23,7 @@ def criar_funcionarios():
                 INSERT INTO funcionarios 
                     (nome_completo, email, matricula, apelido, senha, horario_inicio, horario_fim) 
                 VALUES 
-                    (:nome_temp, :email, :matricula, :apelido, :senha, :horario_inicio, :horario_fim) 
-                RETURNING id
-                
+                    (:nome_temp, :email, :matricula, :apelido, :senha, :horario_inicio, :horario_fim)                
                 """)
     dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido, "senha": senha, "horario_inicio": horario_inicio, "horario_fim": horario_fim}
 
