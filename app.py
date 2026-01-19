@@ -13,7 +13,7 @@ init_db(app)
 #Registro de controladores 
 app.register_blueprint(funcionarios_bp)
 app.register_blueprint(login_bp)
-#app.register_blueprint(clientes_bp)
+app.register_blueprint(postos_bp)
 #app.register_blueprint(pedidos_bp)
 
 
