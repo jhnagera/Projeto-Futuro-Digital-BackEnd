@@ -3,7 +3,7 @@ from conf.database import init_db
 
 from control.funcionarios import funcionarios_bp
 from control.login import login_bp
-
+from control.postos import postos_bp
 
 app = Flask(__name__)
 
