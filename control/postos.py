@@ -25,8 +25,16 @@ def criar_postos():
                     (horario, alfa2, rondap1, delta4, alfa3, rondap2p3, galeriaqap, central) 
                 VALUES 
                     (:horario_temp, :alfa2, :rondap1, :delta4, :alfa3, :rondap2p3, :galeriaqap, :central)                
+                RETURNING id
                 """)
-    dados = {"horario_temp": horario_front, "alfa2": alfa2, "rondap1": rondap1, "delta4": delta4, "alfa3": alfa3, "rondap2p3": rondap2p3, "galeriaqap": galeriaqap, "central": central}
+    dados = {"horario_temp": horario_front,
+             "alfa2": alfa2, 
+             "rondap1": rondap1, 
+             "delta4": delta4, 
+             "alfa3": alfa3, 
+             "rondap2p3": rondap2p3, 
+             "galeriaqap": galeriaqap, 
+             "central": central}
 
     try:
         # executar consulta
@@ -34,10 +42,11 @@ def criar_postos():
         db.session.commit()
 
         # pega o id
-        #id_gerado = result.fetchone()[0]
-        #dados['id'] = id_gerado
+        id_gerado = result.fetchone()[0]
+        dados['id'] = id_gerado
         
         return dados
     except Exception as e:
+        db.session.rollback()
         return f"Erro: {e}"
 

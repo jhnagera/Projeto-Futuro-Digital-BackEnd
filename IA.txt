@@ -71,3 +71,17 @@ def login_funcionario():
         return {"sucesso": False, "mensagem": f"Erro ao realizar login: {str(e)}"}, 500
 
 Pergunta 2:
+
+Criação da tabela postos
+
+CREATE TABLE postos (
+    id SERIAL PRIMARY KEY,           -- ID auto-incrementável
+    horario VARCHAR(50),             -- Ex: "08:00" ou "Turno A"
+    alfa2 VARCHAR(255),              -- Nome do funcionário ou status
+    rondap1 VARCHAR(255),
+    delta4 VARCHAR(255),
+    alfa3 VARCHAR(255),
+    rondap2p3 VARCHAR(255),
+    galeriaqap VARCHAR(255),
+    central VARCHAR(255)
+);
