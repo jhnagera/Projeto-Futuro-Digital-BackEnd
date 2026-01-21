@@ -5,7 +5,7 @@
 -- Dumped from database version 16.1
 -- Dumped by pg_dump version 16.1
 
--- Started on 2025-12-18 11:23:21
+-- Started on 2026-01-21 11:43:56
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -23,7 +23,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 215 (class 1259 OID 41020)
+-- TOC entry 215 (class 1259 OID 16387)
 -- Name: funcionarios; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -39,7 +39,54 @@ CREATE TABLE public.funcionarios (
 ALTER TABLE public.funcionarios OWNER TO postgres;
 
 --
--- TOC entry 4778 (class 0 OID 41020)
+-- TOC entry 217 (class 1259 OID 24588)
+-- Name: postos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.postos (
+    id integer NOT NULL,
+    nome text,
+    descricao text
+);
+
+
+ALTER TABLE public.postos OWNER TO postgres;
+
+--
+-- TOC entry 216 (class 1259 OID 24587)
+-- Name: postos_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.postos_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.postos_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 4794 (class 0 OID 0)
+-- Dependencies: 216
+-- Name: postos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.postos_id_seq OWNED BY public.postos.id;
+
+
+--
+-- TOC entry 4638 (class 2604 OID 24591)
+-- Name: postos id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.postos ALTER COLUMN id SET DEFAULT nextval('public.postos_id_seq'::regclass);
+
+
+--
+-- TOC entry 4786 (class 0 OID 16387)
 -- Dependencies: 215
 -- Data for Name: funcionarios; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -49,7 +96,33 @@ INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha
 
 
 --
--- TOC entry 4634 (class 2606 OID 41026)
+-- TOC entry 4788 (class 0 OID 24588)
+-- Dependencies: 217
+-- Data for Name: postos; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO public.postos (id, nome, descricao) VALUES (6, 'Ronda P1', 'Ronda em todo o Prédio 1');
+INSERT INTO public.postos (id, nome, descricao) VALUES (7, 'Delta 4', 'Sala cofre para acautelamento de objetos não permitidos');
+INSERT INTO public.postos (id, nome, descricao) VALUES (9, 'Galeria/QAP', NULL);
+INSERT INTO public.postos (id, nome, descricao) VALUES (11, 'Monitoramento', NULL);
+INSERT INTO public.postos (id, nome, descricao) VALUES (13, 'Central', 'Gestão administrativa e atendimento ao publico ');
+INSERT INTO public.postos (id, nome, descricao) VALUES (8, 'Alfa 3', 'Entrada principal do Forum');
+INSERT INTO public.postos (id, nome, descricao) VALUES (10, 'Ronda P2 e P3', 'Ronda geral nos prédios 2 e 3');
+INSERT INTO public.postos (id, nome, descricao) VALUES (5, 'Alfa 2', 'Entrada de funcionários');
+INSERT INTO public.postos (id, nome, descricao) VALUES (14, 'Alfa 2iuhgikyg', 'Entrada de funcionários');
+
+
+--
+-- TOC entry 4795 (class 0 OID 0)
+-- Dependencies: 216
+-- Name: postos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.postos_id_seq', 15, true);
+
+
+--
+-- TOC entry 4640 (class 2606 OID 16393)
 -- Name: funcionarios funcionarios_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -57,7 +130,16 @@ ALTER TABLE ONLY public.funcionarios
     ADD CONSTRAINT funcionarios_pkey PRIMARY KEY (matricula);
 
 
--- Completed on 2025-12-18 11:23:21
+--
+-- TOC entry 4642 (class 2606 OID 24595)
+-- Name: postos postos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.postos
+    ADD CONSTRAINT postos_pkey PRIMARY KEY (id);
+
+
+-- Completed on 2026-01-21 11:43:57
 
 --
 -- PostgreSQL database dump complete

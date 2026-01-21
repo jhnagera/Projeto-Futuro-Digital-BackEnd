@@ -11,31 +11,20 @@ postos_bp = Blueprint('postos', __name__, url_prefix = '/postos')
 @postos_bp.route("/", methods=["POST"])
 def criar_postos():
     # dados que vieram
-    horario_front = request.form.get("Horário")
-    alfa2 = request.form.get("Alfa 2")
-    rondap1 = request.form.get("Ronda P1")
-    delta4 = request.form.get("Delta 4")
-    alfa3 = request.form.get("Alfa 3")
-    rondap2p3 = request.form.get("Ronda P2 e P3")
-    galeriaqap = request.form.get("Galeria/QAP")
-    central = request.form.get("Central")
+    nome_front = request.form.get("Nome")
+    descricao = request.form.get("Descrição")
+    
     # SQL
     sql = text("""
                 INSERT INTO postos 
-                    (horario, alfa2, rondap1, delta4, alfa3, rondap2p3, galeriaqap, central) 
+                    (nome, descricao) 
                 VALUES 
-                    (:horario_temp, :alfa2, :rondap1, :delta4, :alfa3, :rondap2p3, :galeriaqap, :central)                
+                    (:nome, :descricao)                
                 RETURNING id
                 """)
-    dados = {"horario_temp": horario_front,
-             "alfa2": alfa2, 
-             "rondap1": rondap1, 
-             "delta4": delta4, 
-             "alfa3": alfa3, 
-             "rondap2p3": rondap2p3, 
-             "galeriaqap": galeriaqap, 
-             "central": central}
-
+    dados = {"nome": nome_front,
+             "descricao": descricao}
+             
     try:
         # executar consulta
         result = db.session.execute(sql, dados)
@@ -50,3 +39,81 @@ def criar_postos():
         db.session.rollback()
         return f"Erro: {e}"
 
+# Ler um (Select by ID)
+@postos_bp.route('/<id>')
+def get_postos(id):
+    sql = text("SELECT * FROM postos WHERE id = :id")
+    dados = {"id": id}
+    
+    try:
+        result = db.session.execute(sql, dados)
+        # Mapear todas as colunas para a linha
+        linhas = result.mappings().all()
+        
+        if len(linhas) > 0:
+            return dict(linhas[0])
+        else:
+            return "Posto não encontrado"
+            
+    except Exception as e:
+        return str(e)
+
+# Ler todos (Select All)
+@postos_bp.route('/all')
+def get_all_postos():
+    sql_query = text("SELECT * FROM postos")
+    
+    try:
+        result = db.session.execute(sql_query)
+        
+        relatorio = result.mappings().all()
+        json_output = [dict(row) for row in relatorio] # Converte linhas em lista de dicionários
+
+        return json_output
+    except Exception as e:
+        return []
+
+# Atualizar (Update)
+@postos_bp.route("/<id>", methods=["PUT"])
+def atualizar_postos(id):
+    # dados que vieram
+    nome = request.form.get("Nome")
+    descricao = request.form.get("Descrição")
+    sql = text("""UPDATE postos SET 
+                        nome = :nome, descricao = :descricao
+                    WHERE id = :id""")
+
+    dados = {"nome": nome, "descricao": descricao, "id": id}
+
+    try:
+        result = db.session.execute(sql, dados)
+        linhas_afetadas = result.rowcount 
+
+        if linhas_afetadas == 1: 
+            db.session.commit()
+            return f"Posto {id} atualizado com sucesso"
+        else:
+            db.session.rollback()
+            return f"Posto não encontrado ou erro ao atualizar"
+    except Exception as e:
+        return str(e)
+
+# Deletar (Delete)
+@postos_bp.route("/<id>", methods=['DELETE'])
+def delete_postos(id):
+    sql = text("DELETE FROM postos WHERE id = :id")
+    dados = {"id": id}
+
+    try:
+        result = db.session.execute(sql, dados)
+        linhas_afetadas = result.rowcount 
+
+        if linhas_afetadas == 1: 
+            db.session.commit()
+            return f"Posto {id} removido"
+        else:
+            db.session.rollback()
+            return f"Erro: Posto não encontrado para deletar"
+    except Exception as e:
+        return str(e)
+    
