@@ -5,7 +5,7 @@
 -- Dumped from database version 16.1
 -- Dumped by pg_dump version 16.1
 
--- Started on 2026-01-21 17:57:01
+-- Started on 2026-01-21 18:25:32
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -21,6 +21,22 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- TOC entry 218 (class 1259 OID 49204)
+-- Name: escala; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.escala (
+    id integer NOT NULL,
+    horario text NOT NULL,
+    data date NOT NULL,
+    matricula text NOT NULL,
+    posto text NOT NULL
+);
+
+
+ALTER TABLE public.escala OWNER TO postgres;
 
 --
 -- TOC entry 217 (class 1259 OID 49197)
@@ -71,7 +87,7 @@ CREATE SEQUENCE public.postos_id_seq
 ALTER SEQUENCE public.postos_id_seq OWNER TO postgres;
 
 --
--- TOC entry 4794 (class 0 OID 0)
+-- TOC entry 4801 (class 0 OID 0)
 -- Dependencies: 216
 -- Name: postos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -80,7 +96,7 @@ ALTER SEQUENCE public.postos_id_seq OWNED BY public.postos.id;
 
 
 --
--- TOC entry 4638 (class 2604 OID 41016)
+-- TOC entry 4642 (class 2604 OID 41016)
 -- Name: postos id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -88,7 +104,15 @@ ALTER TABLE ONLY public.postos ALTER COLUMN id SET DEFAULT nextval('public.posto
 
 
 --
--- TOC entry 4788 (class 0 OID 49197)
+-- TOC entry 4795 (class 0 OID 49204)
+-- Dependencies: 218
+-- Data for Name: escala; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+
+
+--
+-- TOC entry 4794 (class 0 OID 49197)
 -- Dependencies: 217
 -- Data for Name: funcionarios; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -106,7 +130,7 @@ INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha
 
 
 --
--- TOC entry 4786 (class 0 OID 41010)
+-- TOC entry 4792 (class 0 OID 41010)
 -- Dependencies: 215
 -- Data for Name: postos; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -124,7 +148,7 @@ INSERT INTO public.postos (id, nome, descricao) VALUES (16, 'teste4', 'teste4');
 
 
 --
--- TOC entry 4795 (class 0 OID 0)
+-- TOC entry 4802 (class 0 OID 0)
 -- Dependencies: 216
 -- Name: postos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -133,7 +157,16 @@ SELECT pg_catalog.setval('public.postos_id_seq', 16, true);
 
 
 --
--- TOC entry 4642 (class 2606 OID 49203)
+-- TOC entry 4648 (class 2606 OID 49210)
+-- Name: escala escala_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.escala
+    ADD CONSTRAINT escala_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4646 (class 2606 OID 49203)
 -- Name: funcionarios funcionarios_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -142,7 +175,7 @@ ALTER TABLE ONLY public.funcionarios
 
 
 --
--- TOC entry 4640 (class 2606 OID 41020)
+-- TOC entry 4644 (class 2606 OID 41020)
 -- Name: postos postos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -150,7 +183,7 @@ ALTER TABLE ONLY public.postos
     ADD CONSTRAINT postos_pkey PRIMARY KEY (id);
 
 
--- Completed on 2026-01-21 17:57:01
+-- Completed on 2026-01-21 18:25:32
 
 --
 -- PostgreSQL database dump complete
