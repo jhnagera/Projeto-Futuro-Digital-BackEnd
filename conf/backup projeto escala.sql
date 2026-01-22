@@ -5,7 +5,7 @@
 -- Dumped from database version 16.1
 -- Dumped by pg_dump version 16.1
 
--- Started on 2026-01-21 18:25:32
+-- Started on 2026-01-22 18:35:08
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -127,6 +127,13 @@ INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha
 INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('Luis Mirales', 50000, 'lm@trt4.jus.br', 'Mirales', '123', '12:00', '18:00');
 INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('Hamilton', 60000, 'h@trt4.jus.br', 'Hamilton', '123', '12:00', '18:00');
 INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('José Luis Menezes', 4000, 'jlm@trt4.jus.br', 'Menezes', '123', '10:00', '16:00');
+INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('Anderson Castalho', 75210, 'ac@trt4.jus.br', 'Castanho', '123', '7:00', '13:00');
+INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('Andre Melero', 75220, 'am@trt4.jus.br', 'Melero', '123', '7:00', '13:00');
+INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('Cristiano Lentz', 75240, 'cl@trt4.jus.br', 'Cristiano', '123', '7:00', '13:00');
+INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('Juliano S', 75260, 'js@trt4.jus.br', 'Juliano', '123', '7:00', '13:00');
+INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('Nereu de Oliveira', 75280, 'no@trt4.jus.br', 'Nereu', '123', '8:00', '14:00');
+INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('Claudenir dos Santos', 75281, 'cl@trt4.jus.br', 'Claudenir', '123', '8:00', '14:00');
+INSERT INTO public.funcionarios (nome_completo, matricula, email, apelido, senha, horario_inicio, horario_fim) VALUES ('Adriano D', 75282, 'ad@trt4.jus.br', 'Adriano', '123', '8:00', '14:00');
 
 
 --
@@ -183,7 +190,7 @@ ALTER TABLE ONLY public.postos
     ADD CONSTRAINT postos_pkey PRIMARY KEY (id);
 
 
--- Completed on 2026-01-21 18:25:32
+-- Completed on 2026-01-22 18:35:08
 
 --
 -- PostgreSQL database dump complete
