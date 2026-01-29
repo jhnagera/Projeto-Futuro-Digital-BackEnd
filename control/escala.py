@@ -11,20 +11,39 @@ escala_bp = Blueprint('escala', __name__, url_prefix = '/escala')
 @escala_bp.route("/", methods=["POST"])
 def criar_escala():
     # dados que vieram
-    nome_front = request.form.get("horario")
+    horario = request.form.get("horario")
     data_front = request.form.get("data")
     matricula_front = request.form.get("matricula")
     posto_front = request.form.get("posto")
 
+
+    #validação
+    sql = text("SELECT * FROM funcionarios WHERE matricula = :matricula")
+    dados = {"matricula": matricula_front}
+    
+    try:
+        result = db.session.execute(sql, dados)
+        # Mapear todas as colunas para a linha
+        linhas = result.mappings().all()
+        
+        if len(linhas) > 0:
+            funcionario = dict(linhas[0])
+            if funcionario["horario_inicio"] > horario or funcionario["horario_fim"] < horario:
+                return "Horário fora do padrão"
+        else:
+            return "Funcionário não encontrado"
+            
+    except Exception as e:
+        return str(e)
     # SQL
     sql = text("""
                 INSERT INTO escala 
-                    (horario, data, matricula, posto) 
+                    (horario, data, matricula, posto_id) 
                 VALUES 
                     (:horario, :data, :matricula, :posto)                
                 RETURNING id
                 """)
-    dados = {"horario": nome_front,
+    dados = {"horario": horario,
              "data": data_front,
              "matricula": matricula_front,
              "posto": posto_front}
