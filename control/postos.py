@@ -13,17 +13,19 @@ def criar_postos():
     # dados que vieram
     nome_front = request.form.get("Nome")
     descricao = request.form.get("Descrição")
-    
+    posto_especial = request.form.get("posto_especial")
+
     # SQL
     sql = text("""
                 INSERT INTO postos 
-                    (nome, descricao) 
+                    (nome, descricao, posto_especial) 
                 VALUES 
-                    (:nome, :descricao)                
+                    (:nome, :descricao, :posto_especial)                
                 RETURNING id
                 """)
     dados = {"nome": nome_front,
-             "descricao": descricao}
+             "descricao": descricao,
+             "posto_especial": posto_especial}
              
     try:
         # executar consulta
@@ -79,11 +81,12 @@ def atualizar_postos(id):
     # dados que vieram
     nome = request.form.get("Nome")
     descricao = request.form.get("Descrição")
+    posto_especial = request.form.get("posto_especial")
     sql = text("""UPDATE postos SET 
-                        nome = :nome, descricao = :descricao
+                        nome = :nome, descricao = :descricao, posto_especial = :posto_especial
                     WHERE id = :id""")
 
-    dados = {"nome": nome, "descricao": descricao, "id": id}
+    dados = {"nome": nome, "descricao": descricao, "posto_especial": posto_especial, "id": id}
 
     try:
         result = db.session.execute(sql, dados)
