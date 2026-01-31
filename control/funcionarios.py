@@ -18,14 +18,15 @@ def criar_funcionarios():
     senha = request.form.get("senha")
     horario_inicio = request.form.get("horario_inicio")
     horario_fim = request.form.get("horario_fim")
+    posto_especial = request.form.get("posto_especial")
     # SQL
     sql = text("""
                 INSERT INTO funcionarios 
-                    (nome_completo, email, matricula, apelido, senha, horario_inicio, horario_fim) 
+                    (nome_completo, email, matricula, apelido, senha, horario_inicio, horario_fim, posto_especial) 
                 VALUES 
-                    (:nome_temp, :email, :matricula, :apelido, :senha, :horario_inicio, :horario_fim)                
+                    (:nome_temp, :email, :matricula, :apelido, :senha, :horario_inicio, :horario_fim, :posto_especial)                
                 """)
-    dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido, "senha": senha, "horario_inicio": horario_inicio, "horario_fim": horario_fim}
+    dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido, "senha": senha, "horario_inicio": horario_inicio, "horario_fim": horario_fim, "posto_especial": posto_especial}
 
     try:
         # executar consulta
@@ -85,12 +86,14 @@ def atualizar_funcionarios(matricula):
     senha = request.form.get("senha")
     horario_inicio = request.form.get("horario_inicio")
     horario_fim = request.form.get("horario_fim")
+    posto_especial = request.form.get("posto_especial")
     sql = text("""UPDATE funcionarios SET 
                         nome_completo = :nome_funcionario, email = :email, apelido = :apelido,
                         senha = :senha,
                         matricula = :matricula_nova,
                         horario_inicio = :horario_inicio,
-                        horario_fim = :horario_fim 
+                        horario_fim = :horario_fim,
+                        posto_especial = :posto_especial 
                     WHERE matricula = :matricula""")
     
     dados = {   "nome_funcionario": nome, 
@@ -99,7 +102,8 @@ def atualizar_funcionarios(matricula):
                 "senha": senha,
                 "matricula": matricula,
                 "horario_inicio": horario_inicio,
-                "horario_fim": horario_fim   }
+                "horario_fim": horario_fim,
+                "posto_especial": posto_especial   }
 
     try:
         result = db.session.execute(sql, dados)
