@@ -8,7 +8,7 @@ escala_bp = Blueprint('escala', __name__, url_prefix = '/escala')
 
 # -------------------- CRUD escala --------------------
 # Criar retornando ID (Insert com Returning)
-@escala_bp.route("/", methods=["POST"])
+@escala_bp.route("/item", methods=["POST"])
 def criar_escala():
     # dados que vieram
     horario = request.form.get("horario")
