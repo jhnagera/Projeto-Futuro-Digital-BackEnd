@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, request
+from flask import Flask, Blueprint, request, jsonify
 from sqlalchemy import text
 
 from conf.database import db
@@ -6,11 +6,9 @@ from conf.database import db
 funcionarios_bp = Blueprint('funcionarios', __name__, url_prefix = '/funcionarios') 
 
 
-# -------------------- CRUD funcionarios --------------------
-# Criar retornando ID (Insert com Returning)
 @funcionarios_bp.route("/", methods=["POST"])
 def criar_funcionarios():
-    # dados que vieram
+    # 1. Coleta os dados
     nome_front = request.form.get("nome_funcionario")
     email = request.form.get("email")
     matricula = request.form.get("matricula")
@@ -18,7 +16,50 @@ def criar_funcionarios():
     senha = request.form.get("senha")
     horario_inicio = request.form.get("horario_inicio")
     horario_fim = request.form.get("horario_fim")
-    posto_especial = request.form.get("posto_especial")
+    posto_especial = request.form.get("posto_especial", False)
+
+    # 2. Organiza em um dicionário
+    dados = {
+        "nome_temp": nome_front, 
+        "email": email, 
+        "matricula": matricula, 
+        "apelido": apelido, 
+        "senha": senha, 
+        "horario_inicio": horario_inicio, 
+        "horario_fim": horario_fim, 
+            }
+
+    # --- NOVA RESTRIÇÃO: VALIDAÇÃO DE CAMPOS VAZIOS ---
+    for campo, valor in dados.items():
+        # Verifica se o valor é None ou apenas espaços em branco
+        if not valor or str(valor).strip() == "":
+            return f"Erro: O campo '{campo}' é obrigatório.", 400 
+    # --------------------------------------------------
+    #dados não obrigatórios
+    dados["posto_especial"] = posto_especial
+    #validação de horario
+    if horario_inicio >= horario_fim:
+        return "Erro: O horário de início deve ser menor que o horário de fim.", 400
+    #validação de email
+    if "@" not in email:
+        return "Erro: O email deve conter @.", 400
+    #validação de senha
+    if len(senha) < 6:
+        return "Erro: A senha deve ter pelo menos 6 caracteres.", 400
+    #validação de matricula
+    if len(matricula) < 4:
+        return "Erro: A matricula deve ter pelo menos 4 caracteres.", 400
+    #validação de apelido
+    if len(apelido) < 3:
+        return "Erro: O apelido deve ter pelo menos 3 caracteres.", 400
+    #validação de nome
+    if len(nome_front) < 3:
+        return "Erro: O nome deve ter pelo menos 3 caracteres.", 400
+    #validação de posto especial
+    if posto_especial not in [True, False]:
+        return "Erro: O posto especial deve ser True ou False.", 400
+
+    # 3. Insere no banco
     # SQL
     sql = text("""
                 INSERT INTO funcionarios 
@@ -26,20 +67,50 @@ def criar_funcionarios():
                 VALUES 
                     (:nome_temp, :email, :matricula, :apelido, :senha, :horario_inicio, :horario_fim, :posto_especial)                
                 """)
-    dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido, "senha": senha, "horario_inicio": horario_inicio, "horario_fim": horario_fim, "posto_especial": posto_especial}
 
     try:
-        # executar consulta
-        result = db.session.execute(sql, dados)
+        db.session.execute(sql, dados)
         db.session.commit()
-
-        # pega o id
-        #id_gerado = result.fetchone()[0]
-        #dados['id'] = id_gerado
         
-        return dados
+        return dados, 201 # Retorna 201 que significa "Criado com sucesso"
+
     except Exception as e:
-        return f"Erro: {e}"
+        db.session.rollback() # Desfaz qualquer alteração se der erro
+        return f"Erro ao inserir no banco: {e}", 500
+# # -------------------- CRUD funcionarios --------------------
+# # Criar retornando ID (Insert com Returning)
+# @funcionarios_bp.route("/", methods=["POST"])
+# def criar_funcionarios():
+#     # dados que vieram
+#     nome_front = request.form.get("nome_funcionario")
+#     email = request.form.get("email")
+#     matricula = request.form.get("matricula")
+#     apelido = request.form.get("apelido")
+#     senha = request.form.get("senha")
+#     horario_inicio = request.form.get("horario_inicio")
+#     horario_fim = request.form.get("horario_fim")
+#     posto_especial = request.form.get("posto_especial")
+#     # SQL
+#     sql = text("""
+#                 INSERT INTO funcionarios 
+#                     (nome_completo, email, matricula, apelido, senha, horario_inicio, horario_fim, posto_especial) 
+#                 VALUES 
+#                     (:nome_temp, :email, :matricula, :apelido, :senha, :horario_inicio, :horario_fim, :posto_especial)                
+#                 """)
+#     dados = {"nome_temp": nome_front, "email": email, "matricula": matricula, "apelido": apelido, "senha": senha, "horario_inicio": horario_inicio, "horario_fim": horario_fim, "posto_especial": posto_especial}
+
+#     try:
+#         # executar consulta
+#         result = db.session.execute(sql, dados)
+#         db.session.commit()
+
+#         # pega o id
+#         #id_gerado = result.fetchone()[0]
+#         #dados['id'] = id_gerado
+        
+#         return dados
+#     except Exception as e:
+#         return f"Erro: {e}"
 
 # Ler um (Select by ID)
 @funcionarios_bp.route('/<matricula>')
