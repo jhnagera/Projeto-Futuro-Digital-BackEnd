@@ -1,5 +1,6 @@
 from flask import Flask, Blueprint, request, jsonify
 from sqlalchemy import text
+from datetime import datetime
 
 from conf.database import db
 
@@ -146,20 +147,33 @@ def get_all_funcionarios():
     except Exception as e:
         return []
 
+
 # Atualizar (Update)
 @funcionarios_bp.route("/<matricula>", methods=["PUT"])
 def atualizar_funcionarios(matricula):
-    # dados que vieram
-    nome = request.form.get("nome_funcionario")
-    email = request.form.get("email")
-    matricula_nova = request.form.get("matricula", matricula)
-    apelido = request.form.get("apelido")
-    senha = request.form.get("senha")
-    horario_inicio = request.form.get("horario_inicio")
-    horario_fim = request.form.get("horario_fim")
-    posto_especial = request.form.get("posto_especial")
+    # 1. Coleta dos dados
+    dados_requisicao = {
+        "nome_funcionario": request.form.get("nome_funcionario"),
+        "email": request.form.get("email"),
+        "matricula_nova": request.form.get("matricula"), # Removi o default para validar se foi enviado
+        "apelido": request.form.get("apelido"),
+        "senha": request.form.get("senha"),
+        "horario_inicio": request.form.get("horario_inicio"),
+        "horario_fim": request.form.get("horario_fim"),
+        "posto_especial": request.form.get("posto_especial")
+    }
+
+    # 2. Restrição: Validar se todos os campos estão preenchidos
+    campos_vazios = [campo for campo, valor in dados_requisicao.items() if not valor or str(valor).strip() == ""]
+    
+    if campos_vazios:
+        return f"Erro: Os seguintes campos são obrigatórios e não foram preenchidos: {', '.join(campos_vazios)}", 400
+
+    # ---------------------------------------------------------------------------------------------
     sql = text("""UPDATE funcionarios SET 
-                        nome_completo = :nome_funcionario, email = :email, apelido = :apelido,
+                        nome_completo = :nome_funcionario, 
+                        email = :email, 
+                        apelido = :apelido,
                         senha = :senha,
                         matricula = :matricula_nova,
                         horario_inicio = :horario_inicio,
@@ -167,27 +181,68 @@ def atualizar_funcionarios(matricula):
                         posto_especial = :posto_especial 
                     WHERE matricula = :matricula""")
     
-    dados = {   "nome_funcionario": nome, 
-                "matricula_nova": matricula_nova, 
-                "email": email, "apelido": apelido,
-                "senha": senha,
-                "matricula": matricula,
-                "horario_inicio": horario_inicio,
-                "horario_fim": horario_fim,
-                "posto_especial": posto_especial   }
+    # Adicionando a matrícula original (da URL) ao dicionário para o WHERE
+    dados_requisicao["matricula"] = matricula
 
     try:
-        result = db.session.execute(sql, dados)
+        result = db.session.execute(sql, dados_requisicao)
         linhas_afetadas = result.rowcount 
         
         if linhas_afetadas == 1: 
             db.session.commit()
-            return f"Funcionário {matricula} atualizado com sucesso"
+            return f"Funcionário {matricula} atualizado com sucesso", 200
         else:
             db.session.rollback()
-            return f"Funcionário não encontrado ou erro ao atualizar"
+            return f"Funcionário com matrícula {matricula} não encontrado", 404
+            
     except Exception as e:
-        return str(e)
+        db.session.rollback()
+        return f"Erro interno: {str(e)}", 500
+
+# Atualizar (Update)
+# @funcionarios_bp.route("/<matricula>", methods=["PUT"])
+# def atualizar_funcionarios(matricula):
+#     # dados que vieram
+#     nome = request.form.get("nome_funcionario")
+#     email = request.form.get("email")
+#     matricula_nova = request.form.get("matricula", matricula)
+#     apelido = request.form.get("apelido")
+#     senha = request.form.get("senha")
+#     horario_inicio = request.form.get("horario_inicio")
+#     horario_fim = request.form.get("horario_fim")
+#     posto_especial = request.form.get("posto_especial")
+
+#     #---------------------------------------------------------------------------------------------
+#     sql = text("""UPDATE funcionarios SET 
+#                         nome_completo = :nome_funcionario, email = :email, apelido = :apelido,
+#                         senha = :senha,
+#                         matricula = :matricula_nova,
+#                         horario_inicio = :horario_inicio,
+#                         horario_fim = :horario_fim,
+#                         posto_especial = :posto_especial 
+#                     WHERE matricula = :matricula""")
+    
+#     dados = {   "nome_funcionario": nome, 
+#                 "matricula_nova": matricula_nova, 
+#                 "email": email, "apelido": apelido,
+#                 "senha": senha,
+#                 "matricula": matricula,
+#                 "horario_inicio": horario_inicio,
+#                 "horario_fim": horario_fim,
+#                 "posto_especial": posto_especial   }
+
+#     try:
+#         result = db.session.execute(sql, dados)
+#         linhas_afetadas = result.rowcount 
+        
+#         if linhas_afetadas == 1: 
+#             db.session.commit()
+#             return f"Funcionário {matricula} atualizado com sucesso"
+#         else:
+#             db.session.rollback()
+#             return f"Funcionário não encontrado ou erro ao atualizar"
+#     except Exception as e:
+#         return str(e)
 
 # Deletar (Delete)
 @funcionarios_bp.route("/<matricula>", methods=['DELETE'])
