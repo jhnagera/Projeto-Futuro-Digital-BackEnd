@@ -17,9 +17,9 @@ def criar_funcionarios():
     senha = request.form.get("senha")
     horario_inicio = request.form.get("horario_inicio")
     horario_fim = request.form.get("horario_fim")
-    posto_especial = request.form.get("posto_especial", False)
+    posto_especial = request.form.get("posto_especial", "False").lower() == "true"
 
-    # 2. Organiza em um dicionário
+    # 2. Organiza em um dicionário para validação inicial
     dados = {
         "nome_temp": nome_front, 
         "email": email, 
@@ -28,40 +28,46 @@ def criar_funcionarios():
         "senha": senha, 
         "horario_inicio": horario_inicio, 
         "horario_fim": horario_fim, 
-            }
+    }
 
-    # --- NOVA RESTRIÇÃO: VALIDAÇÃO DE CAMPOS VAZIOS ---
+    # --- VALIDAÇÃO DE CAMPOS VAZIOS ---
     for campo, valor in dados.items():
-        # Verifica se o valor é None ou apenas espaços em branco
         if not valor or str(valor).strip() == "":
             return f"Erro: O campo '{campo}' é obrigatório.", 400 
-    # --------------------------------------------------
-    #dados não obrigatórios
-    dados["posto_especial"] = posto_especial
-    #validação de horario
+
+    # --- NOVA VALIDAÇÃO: FORMATO DE HORA (HH:MM) ---
+    for campo_hora in ["horario_inicio", "horario_fim"]:
+        try:
+            # Tenta converter a string para um objeto de hora
+            datetime.strptime(dados[campo_hora], "%H:%M")
+        except ValueError:
+            return f"Erro: O campo '{campo_hora}' deve estar no formato HH:MM (ex: 09:00).", 400
+
+    # --- VALIDAÇÕES DE REGRA DE NEGÓCIO ---
+    
+    # Validação de lógica de horário (agora que o formato está garantido)
     if horario_inicio >= horario_fim:
         return "Erro: O horário de início deve ser menor que o horário de fim.", 400
-    #validação de email
+    
     if "@" not in email:
         return "Erro: O email deve conter @.", 400
-    #validação de senha
+    
     if len(senha) < 6:
         return "Erro: A senha deve ter pelo menos 6 caracteres.", 400
-    #validação de matricula
+    
     if len(matricula) < 4:
         return "Erro: A matricula deve ter pelo menos 4 caracteres.", 400
-    #validação de apelido
+    
     if len(apelido) < 3:
         return "Erro: O apelido deve ter pelo menos 3 caracteres.", 400
-    #validação de nome
+    
     if len(nome_front) < 3:
         return "Erro: O nome deve ter pelo menos 3 caracteres.", 400
-    #validação de posto especial
-    if posto_especial not in [True, False]:
-        return "Erro: O posto especial deve ser True ou False.", 400
+
+    # Adiciona o campo que não passou pelo loop de strings obrigatórias
+    dados["posto_especial"] = posto_especial
 
     # 3. Insere no banco
-    # SQL
     sql = text("""
                 INSERT INTO funcionarios 
                     (nome_completo, email, matricula, apelido, senha, horario_inicio, horario_fim, posto_especial) 
@@ -72,11 +78,10 @@ def criar_funcionarios():
     try:
         db.session.execute(sql, dados)
         db.session.commit()
-        
-        return dados, 201 # Retorna 201 que significa "Criado com sucesso"
+        return dados, 201 
 
     except Exception as e:
-        db.session.rollback() # Desfaz qualquer alteração se der erro
+        db.session.rollback()
         return f"Erro ao inserir no banco: {e}", 500
 # # -------------------- CRUD funcionarios --------------------
 # # Criar retornando ID (Insert com Returning)
@@ -155,7 +160,7 @@ def atualizar_funcionarios(matricula):
     dados_requisicao = {
         "nome_funcionario": request.form.get("nome_funcionario"),
         "email": request.form.get("email"),
-        "matricula_nova": request.form.get("matricula"), # Removi o default para validar se foi enviado
+        "matricula_nova": request.form.get("matricula"),
         "apelido": request.form.get("apelido"),
         "senha": request.form.get("senha"),
         "horario_inicio": request.form.get("horario_inicio"),
@@ -163,42 +168,41 @@ def atualizar_funcionarios(matricula):
         "posto_especial": request.form.get("posto_especial")
     }
 
-    # 2. Restrição: Validar se todos os campos estão preenchidos
+    # 2. Restrição: Validar campos obrigatórios (vazios ou None)
     campos_vazios = [campo for campo, valor in dados_requisicao.items() if not valor or str(valor).strip() == ""]
-    
     if campos_vazios:
-        return f"Erro: Os seguintes campos são obrigatórios e não foram preenchidos: {', '.join(campos_vazios)}", 400
+        return f"Erro: Preencha todos os campos: {', '.join(campos_vazios)}", 400
 
-    # ---------------------------------------------------------------------------------------------
+    # 3. Restrição: Validar formato de hora (HH:MM)
+    for campo in ["horario_inicio", "horario_fim"]:
+        valor_hora = dados_requisicao[campo]
+        try:
+            # Tenta converter a string para o formato de hora
+            datetime.strptime(valor_hora, "%H:%M")
+        except ValueError:
+            return f"Erro: O campo {campo} deve estar no formato HH:MM (ex: 08:00, 17:30)", 400
+
+    # --- Início da execução SQL ---
     sql = text("""UPDATE funcionarios SET 
-                        nome_completo = :nome_funcionario, 
-                        email = :email, 
-                        apelido = :apelido,
-                        senha = :senha,
-                        matricula = :matricula_nova,
-                        horario_inicio = :horario_inicio,
-                        horario_fim = :horario_fim,
+                        nome_completo = :nome_funcionario, email = :email, apelido = :apelido,
+                        senha = :senha, matricula = :matricula_nova,
+                        horario_inicio = :horario_inicio, horario_fim = :horario_fim,
                         posto_especial = :posto_especial 
                     WHERE matricula = :matricula""")
     
-    # Adicionando a matrícula original (da URL) ao dicionário para o WHERE
     dados_requisicao["matricula"] = matricula
 
     try:
         result = db.session.execute(sql, dados_requisicao)
-        linhas_afetadas = result.rowcount 
-        
-        if linhas_afetadas == 1: 
+        if result.rowcount == 1: 
             db.session.commit()
             return f"Funcionário {matricula} atualizado com sucesso", 200
         else:
             db.session.rollback()
-            return f"Funcionário com matrícula {matricula} não encontrado", 404
-            
+            return "Funcionário não encontrado", 404
     except Exception as e:
         db.session.rollback()
-        return f"Erro interno: {str(e)}", 500
-
+        return f"Erro no banco de dados: {str(e)}", 500
 # Atualizar (Update)
 # @funcionarios_bp.route("/<matricula>", methods=["PUT"])
 # def atualizar_funcionarios(matricula):
