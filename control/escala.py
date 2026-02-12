@@ -1,6 +1,7 @@
 from flask import Flask, Blueprint, request
 from sqlalchemy import text
 
+
 from conf.database import db
 
 escala_bp = Blueprint('escala', __name__, url_prefix = '/escala') 
