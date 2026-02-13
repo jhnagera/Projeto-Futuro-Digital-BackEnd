@@ -1,67 +1,145 @@
 from flask import Flask, Blueprint, request
 from sqlalchemy import text
+from datetime import datetime
 
 
 from conf.database import db
 
 escala_bp = Blueprint('escala', __name__, url_prefix = '/escala') 
 
-
 # -------------------- CRUD escala --------------------
-# Criar retornando ID (Insert com Returning)
 @escala_bp.route("/item", methods=["POST"])
 def criar_escala():
-    # dados que vieram
+    # 1. Coleta os dados
     horario = request.form.get("horario")
     data_front = request.form.get("data")
     matricula_front = request.form.get("matricula")
     posto_front = request.form.get("posto")
 
+    # --- RESTRIÇÃO 1: TODOS OS CAMPOS SÃO OBRIGATÓRIOS ---
+    dados_verificacao = {
+        "horario": horario,
+        "data": data_front,
+        "matricula": matricula_front,
+        "posto": posto_front
+    }
 
-    #validação
-    sql = text("SELECT * FROM funcionarios WHERE matricula = :matricula")
-    dados = {"matricula": matricula_front}
+    for campo, valor in dados_verificacao.items():
+        if not valor or str(valor).strip() == "":
+            return f"Erro: O campo '{campo}' deve ser preenchido.", 400
+
+    # --- RESTRIÇÃO 2: VALIDAÇÃO DE FORMATO DE HORA (HH:MM) ---
+    try:
+        datetime.strptime(horario, "%H:%M")
+    except ValueError:
+        return "Erro: O horário deve estar no formato HH:MM (ex: 14:00).", 400
+
+    # --- RESTRIÇÃO 3: VALIDAÇÃO DE FORMATO DE DATA (AAAA-MM-DD) ---
+    try:
+        # Tenta converter a string para uma data real
+        datetime.strptime(data_front, "%Y-%m-%d")
+    except ValueError:
+        return "Erro: A data deve estar no formato AAAA-MM-DD (ex: 2023-12-31).", 400
+
+    # --- VALIDAÇÃO DE EXISTÊNCIA E COMPATIBILIDADE DE TURNO ---
+    sql_func = text("SELECT horario_inicio, horario_fim FROM funcionarios WHERE matricula = :matricula")
     
     try:
-        result = db.session.execute(sql, dados)
-        # Mapear todas as colunas para a linha
-        linhas = result.mappings().all()
+        result = db.session.execute(sql_func, {"matricula": matricula_front})
+        funcionario = result.mappings().first()
         
-        if len(linhas) > 0:
-            funcionario = dict(linhas[0])
-            if funcionario["horario_inicio"] > horario or funcionario["horario_fim"] < horario:
-                return "Horário fora do padrão"
-        else:
-            return "Funcionário não encontrado"
+        if not funcionario:
+            return "Erro: Funcionário não encontrado.", 404
+        
+        # --- RESTRIÇÃO 4: HORÁRIO DENTRO DO PADRÃO DO FUNCIONÁRIO ---
+        if horario < funcionario["horario_inicio"] or horario > funcionario["horario_fim"]:
+            return (f"Erro: Horário {horario} fora do turno do funcionário "
+                    f"({funcionario['horario_inicio']} às {funcionario['horario_fim']})."), 400
             
     except Exception as e:
-        return str(e)
-    # SQL
-    sql = text("""
-                INSERT INTO escala 
-                    (horario, data, matricula, posto_id) 
-                VALUES 
-                    (:horario, :data, :matricula, :posto)                
-                RETURNING id
-                """)
-    dados = {"horario": horario,
-             "data": data_front,
-             "matricula": matricula_front,
-             "posto": posto_front}
+        return f"Erro ao consultar funcionário: {str(e)}", 500
+
+    # --- INSERÇÃO NA TABELA ESCALA ---
+    sql_insert = text("""
+        INSERT INTO escala (horario, data, matricula, posto_id) 
+        VALUES (:horario, :data, :matricula, :posto)                
+        RETURNING id
+    """)
+    
+    dados_insert = {
+        "horario": horario,
+        "data": data_front,
+        "matricula": matricula_front,
+        "posto": posto_front
+    }
              
     try:
-        # executar consulta
-        result = db.session.execute(sql, dados)
+        result = db.session.execute(sql_insert, dados_insert)
+        id_gerado = result.fetchone()[0]
         db.session.commit()
 
-        # pega o id
-        id_gerado = result.fetchone()[0]
-        dados['id'] = id_gerado
+        dados_insert['id'] = id_gerado
+        return dados_insert, 201
         
-        return dados
     except Exception as e:
         db.session.rollback()
-        return f"Erro: {e}"
+        return f"Erro ao inserir na escala: {e}", 500
+
+# -------------------- CRUD escala --------------------
+# Criar retornando ID (Insert com Returning)
+# @escala_bp.route("/item", methods=["POST"])
+# def criar_escala():
+#     # dados que vieram
+#     horario = request.form.get("horario")
+#     data_front = request.form.get("data")
+#     matricula_front = request.form.get("matricula")
+#     posto_front = request.form.get("posto")
+
+
+#     #validação
+#     sql = text("SELECT * FROM funcionarios WHERE matricula = :matricula")
+#     dados = {"matricula": matricula_front}
+    
+#     try:
+#         result = db.session.execute(sql, dados)
+#         # Mapear todas as colunas para a linha
+#         linhas = result.mappings().all()
+        
+#         if len(linhas) > 0:
+#             funcionario = dict(linhas[0])
+#             if funcionario["horario_inicio"] > horario or funcionario["horario_fim"] < horario:
+#                 return "Horário fora do padrão"
+#         else:
+#             return "Funcionário não encontrado"
+            
+#     except Exception as e:
+#         return str(e)
+#     # SQL
+#     sql = text("""
+#                 INSERT INTO escala 
+#                     (horario, data, matricula, posto_id) 
+#                 VALUES 
+#                     (:horario, :data, :matricula, :posto)                
+#                 RETURNING id
+#                 """)
+#     dados = {"horario": horario,
+#              "data": data_front,
+#              "matricula": matricula_front,
+#              "posto": posto_front}
+             
+#     try:
+#         # executar consulta
+#         result = db.session.execute(sql, dados)
+#         db.session.commit()
+
+#         # pega o id
+#         id_gerado = result.fetchone()[0]
+#         dados['id'] = id_gerado
+        
+#         return dados
+#     except Exception as e:
+#         db.session.rollback()
+#         return f"Erro: {e}"
 
 # Ler um (Select by ID)
 @escala_bp.route('/<id>')
