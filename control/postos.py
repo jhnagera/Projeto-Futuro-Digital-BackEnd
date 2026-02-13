@@ -10,12 +10,26 @@ postos_bp = Blueprint('postos', __name__, url_prefix = '/postos')
 # Criar retornando ID (Insert com Returning)
 @postos_bp.route("/", methods=["POST"])
 def criar_postos():
-    # dados que vieram
+    # 1. Coleta os dados que vieram do front-end
     nome_front = request.form.get("Nome")
     descricao = request.form.get("Descrição")
     posto_especial = request.form.get("posto_especial")
 
-    # SQL
+    # 2. Organiza os dados em um dicionário
+    dados = {
+        "nome": nome_front,
+        "descricao": descricao,
+        "posto_especial": posto_especial
+    }
+
+    # --- RESTRIÇÃO: VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS ---
+    for campo, valor in dados.items():
+        # Verifica se o valor é nulo (None) ou se é uma string vazia/só com espaços
+        if not valor or str(valor).strip() == "":
+            return f"Erro: O campo '{campo}' não pode estar vazio.", 400
+    # --------------------------------------------------
+
+    # SQL com RETURNING id para pegar o ID gerado no banco
     sql = text("""
                 INSERT INTO postos 
                     (nome, descricao, posto_especial) 
@@ -23,23 +37,54 @@ def criar_postos():
                     (:nome, :descricao, :posto_especial)                
                 RETURNING id
                 """)
-    dados = {"nome": nome_front,
-             "descricao": descricao,
-             "posto_especial": posto_especial}
              
     try:
-        # executar consulta
+        # Executar consulta
         result = db.session.execute(sql, dados)
         db.session.commit()
 
-        # pega o id
+        # Pega o id gerado (usando o RETURNING do SQL)
         id_gerado = result.fetchone()[0]
         dados['id'] = id_gerado
         
-        return dados
+        return dados, 201 # Sucesso (Created)
+        
     except Exception as e:
-        db.session.rollback()
-        return f"Erro: {e}"
+        db.session.rollback() # Limpa a transação em caso de falha
+        return f"Erro ao salvar posto: {e}", 500
+
+# @postos_bp.route("/", methods=["POST"])
+# def criar_postos():
+#     # dados que vieram
+#     nome_front = request.form.get("Nome")
+#     descricao = request.form.get("Descrição")
+#     posto_especial = request.form.get("posto_especial")
+
+#     # SQL
+#     sql = text("""
+#                 INSERT INTO postos 
+#                     (nome, descricao, posto_especial) 
+#                 VALUES 
+#                     (:nome, :descricao, :posto_especial)                
+#                 RETURNING id
+#                 """)
+#     dados = {"nome": nome_front,
+#              "descricao": descricao,
+#              "posto_especial": posto_especial}
+             
+#     try:
+#         # executar consulta
+#         result = db.session.execute(sql, dados)
+#         db.session.commit()
+
+#         # pega o id
+#         id_gerado = result.fetchone()[0]
+#         dados['id'] = id_gerado
+        
+#         return dados
+#     except Exception as e:
+#         db.session.rollback()
+#         return f"Erro: {e}"
 
 # Ler um (Select by ID)
 @postos_bp.route('/<id>')
