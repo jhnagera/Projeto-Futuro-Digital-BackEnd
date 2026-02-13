@@ -178,16 +178,37 @@ def get_all_escala():
 # Atualizar (Update)
 @escala_bp.route("/<id>", methods=["PUT"])
 def atualizar_escala(id):
-    # dados que vieram
-    horario = request.form.get("Nome")
-    data = request.form.get("Descrição")
-    matricula = request.form.get("Descrição")
-    posto = request.form.get("Descrição")
-    sql = text("""UPDATE escala SET 
-                        horario = :horario, data = :data, matricula = :matricula, posto = :posto
-                    WHERE id = :id""")
+    # 1. Coleta os dados do formulário
+    # Ajustei os nomes dos campos (ex: "data", "matricula") para fazerem mais sentido
+    horario = request.form.get("horario")
+    data = request.form.get("data")
+    matricula = request.form.get("matricula")
+    posto = request.form.get("posto")
 
-    dados = {"horario": horario, "data": data, "matricula": matricula, "posto": posto, "id": id}
+    # 2. Cria o dicionário para a query
+    dados = {
+        "horario": horario, 
+        "data": data, 
+        "matricula": matricula, 
+        "posto": posto
+    }
+
+    # --- RESTRIÇÃO: VALIDAÇÃO DE CAMPOS ---
+    for campo, valor in dados.items():
+        # Verifica se o campo é nulo ou se está vazio (removendo espaços extras)
+        if not valor or str(valor).strip() == "":
+            return f"Erro: O campo '{campo}' deve ser preenchido.", 400
+    # --------------------------------------
+
+    # Adicionamos o ID ao dicionário após a validação
+    dados["id"] = id
+
+    sql = text("""UPDATE escala SET 
+                    horario = :horario, 
+                    data = :data, 
+                    matricula = :matricula, 
+                    posto = :posto
+                  WHERE id = :id""")
 
     try:
         result = db.session.execute(sql, dados)
@@ -195,12 +216,39 @@ def atualizar_escala(id):
 
         if linhas_afetadas == 1: 
             db.session.commit()
-            return f"Escala {id} atualizada com sucesso"
+            return f"Escala {id} atualizada com sucesso", 200
         else:
             db.session.rollback()
-            return f"Escala não encontrada ou erro ao atualizar"
+            return f"Escala {id} não encontrada para atualização", 404
+
     except Exception as e:
-        return str(e)
+        db.session.rollback()
+        return f"Erro no servidor: {str(e)}", 500
+# @escala_bp.route("/<id>", methods=["PUT"])
+# def atualizar_escala(id):
+#     # dados que vieram
+#     horario = request.form.get("Nome")
+#     data = request.form.get("Descrição")
+#     matricula = request.form.get("Descrição")
+#     posto = request.form.get("Descrição")
+#     sql = text("""UPDATE escala SET 
+#                         horario = :horario, data = :data, matricula = :matricula, posto = :posto
+#                     WHERE id = :id""")
+
+#     dados = {"horario": horario, "data": data, "matricula": matricula, "posto": posto, "id": id}
+
+#     try:
+#         result = db.session.execute(sql, dados)
+#         linhas_afetadas = result.rowcount 
+
+#         if linhas_afetadas == 1: 
+#             db.session.commit()
+#             return f"Escala {id} atualizada com sucesso"
+#         else:
+#             db.session.rollback()
+#             return f"Escala não encontrada ou erro ao atualizar"
+#     except Exception as e:
+#         return str(e)
 
 # Deletar (Delete)
 @escala_bp.route("/<id>", methods=['DELETE'])
