@@ -123,28 +123,72 @@ def get_all_postos():
 # Atualizar (Update)
 @postos_bp.route("/<id>", methods=["PUT"])
 def atualizar_postos(id):
-    # dados que vieram
+    # 1. Coleta os dados que vieram do formulário
     nome = request.form.get("Nome")
     descricao = request.form.get("Descrição")
     posto_especial = request.form.get("posto_especial")
+
+    # 2. Dicionário apenas com os campos que serão validados
+    dados_validacao = {
+        "nome": nome, 
+        "descricao": descricao, 
+        "posto_especial": posto_especial
+    }
+
+    # --- RESTRIÇÃO: VALIDAÇÃO DE CAMPOS VAZIOS ---
+    for campo, valor in dados_validacao.items():
+        if not valor or str(valor).strip() == "":
+            return f"Erro: O campo '{campo}' é obrigatório para a atualização.", 400
+    # ---------------------------------------------
+
+    # 3. Monta o dicionário completo para a query (incluindo o ID)
+    dados_sql = {**dados_validacao, "id": id}
+
     sql = text("""UPDATE postos SET 
-                        nome = :nome, descricao = :descricao, posto_especial = :posto_especial
+                        nome = :nome, 
+                        descricao = :descricao, 
+                        posto_especial = :posto_especial
                     WHERE id = :id""")
 
-    dados = {"nome": nome, "descricao": descricao, "posto_especial": posto_especial, "id": id}
-
     try:
-        result = db.session.execute(sql, dados)
+        result = db.session.execute(sql, dados_sql)
         linhas_afetadas = result.rowcount 
 
         if linhas_afetadas == 1: 
             db.session.commit()
-            return f"Posto {id} atualizado com sucesso"
+            return f"Posto {id} atualizado com sucesso", 200
         else:
             db.session.rollback()
-            return f"Posto não encontrado ou erro ao atualizar"
+            return f"Posto {id} não encontrado ou nenhuma alteração realizada", 404
+
     except Exception as e:
-        return str(e)
+        db.session.rollback()
+        return f"Erro interno: {str(e)}", 500
+
+# @postos_bp.route("/<id>", methods=["PUT"])
+# def atualizar_postos(id):
+#     # dados que vieram
+#     nome = request.form.get("Nome")
+#     descricao = request.form.get("Descrição")
+#     posto_especial = request.form.get("posto_especial")
+#     sql = text("""UPDATE postos SET 
+#                         nome = :nome, descricao = :descricao, posto_especial = :posto_especial
+#                     WHERE id = :id""")
+
+#     dados = {"nome": nome, "descricao": descricao, "posto_especial": posto_especial, "id": id}
+
+#     try:
+#         result = db.session.execute(sql, dados)
+#         linhas_afetadas = result.rowcount 
+
+#         if linhas_afetadas == 1: 
+#             db.session.commit()
+#             return f"Posto {id} atualizado com sucesso"
+#         else:
+#             db.session.rollback()
+#             return f"Posto não encontrado ou erro ao atualizar"
+#     except Exception as e:
+#         return str(e)
 
 # Deletar (Delete)
 @postos_bp.route("/<id>", methods=['DELETE'])
