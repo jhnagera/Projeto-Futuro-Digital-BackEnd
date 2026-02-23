@@ -29,7 +29,20 @@ def criar_postos():
             return f"Erro: O campo '{campo}' não pode estar vazio.", 400
     # --------------------------------------------------
 
-    # SQL com RETURNING id para pegar o ID gerado no banco
+    # 3. Verifica se o posto já foi cadastrado (por nome)
+    sql_verificacao = text("""
+                SELECT nome FROM postos 
+                WHERE nome = :nome
+                """)
+    
+    try:
+        resultado = db.session.execute(sql_verificacao, {"nome": nome_front})
+        if resultado.fetchone():
+            return "Posto já cadastrado.", 409
+    except Exception as e:
+        return f"Erro ao verificar cadastro: {e}", 500
+
+    # 4. SQL com RETURNING id para pegar o ID gerado no banco
     sql = text("""
                 INSERT INTO postos 
                     (nome, descricao, posto_especial) 
