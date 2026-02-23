@@ -67,7 +67,20 @@ def criar_funcionarios():
     # Adiciona o campo que não passou pelo loop de strings obrigatórias
     dados["posto_especial"] = posto_especial
 
-    # 3. Insere no banco
+    # 3. Verifica se o funcionário já foi cadastrado (por matrícula ou email)
+    sql_verificacao = text("""
+                SELECT matricula FROM funcionarios 
+                WHERE matricula = :matricula OR email = :email
+                """)
+    
+    try:
+        resultado = db.session.execute(sql_verificacao, {"matricula": matricula, "email": email})
+        if resultado.fetchone():
+            return "Funcionário já cadastrado.", 409
+    except Exception as e:
+        return f"Erro ao verificar cadastro: {e}", 500
+
+    # 4. Insere no banco
     sql = text("""
                 INSERT INTO funcionarios 
                     (nome_completo, email, matricula, apelido, senha, horario_inicio, horario_fim, posto_especial) 
