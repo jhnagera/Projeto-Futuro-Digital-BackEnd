@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from conf.database import init_db
 
 from control.funcionarios import funcionarios_bp
@@ -7,6 +8,7 @@ from control.postos import postos_bp
 from control.escala import escala_bp
 
 app = Flask(__name__)
+CORS(app) # Habilita CORS para todas as rotas
 
 #Conexao Geral do meu app
 init_db(app)

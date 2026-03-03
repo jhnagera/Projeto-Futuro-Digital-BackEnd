@@ -169,7 +169,10 @@ def get_all_funcionarios():
 # Atualizar (Update)
 @funcionarios_bp.route("/<matricula>", methods=["PUT"])
 def atualizar_funcionarios(matricula):
-    # 1. Coleta dos dados
+    # 1. Coleta os dados
+    posto_especial_raw = str(request.form.get("posto_especial", "false")).lower().strip()
+    posto_especial = (posto_especial_raw == "true")
+
     dados_requisicao = {
         "nome_funcionario": request.form.get("nome_funcionario"),
         "email": request.form.get("email"),
@@ -177,14 +180,16 @@ def atualizar_funcionarios(matricula):
         "apelido": request.form.get("apelido"),
         "senha": request.form.get("senha"),
         "horario_inicio": request.form.get("horario_inicio"),
-        "horario_fim": request.form.get("horario_fim"),
-        "posto_especial": request.form.get("posto_especial")
+        "horario_fim": request.form.get("horario_fim")
     }
 
     # 2. Restrição: Validar campos obrigatórios (vazios ou None)
     campos_vazios = [campo for campo, valor in dados_requisicao.items() if not valor or str(valor).strip() == ""]
     if campos_vazios:
         return f"Erro: Preencha todos os campos: {', '.join(campos_vazios)}", 400
+
+    # Adiciona o booleano já tratado aos dados para o SQL
+    dados_requisicao["posto_especial"] = posto_especial
 
     # 3. Restrição: Validar formato de hora (HH:MM)
     for campo in ["horario_inicio", "horario_fim"]:

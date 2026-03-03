@@ -163,7 +163,20 @@ def get_escala(id):
 # Ler todos (Select All)
 @escala_bp.route('/all')
 def get_all_escala():
-    sql_query = text("SELECT * FROM escala")
+    # Ordenação personalizada: Alfa 2, Ronda P1, Delta 4, Alfa 3, Ronda P2 e P3, Central
+    sql_query = text("""
+        SELECT * FROM escala 
+        ORDER BY data ASC, horario ASC, 
+        CASE 
+            WHEN posto LIKE '%Alfa 2%' THEN 1
+            WHEN posto LIKE '%Ronda P1%' THEN 2
+            WHEN posto LIKE '%Delta 4%' THEN 3
+            WHEN posto LIKE '%Alfa 3%' THEN 4
+            WHEN posto LIKE '%Ronda P2 e P3%' THEN 5
+            WHEN posto LIKE '%Central%' THEN 6
+            ELSE 7
+        END ASC
+    """)
     
     try:
         result = db.session.execute(sql_query)
@@ -249,6 +262,32 @@ def atualizar_escala(id):
 #             return f"Escala não encontrada ou erro ao atualizar"
 #     except Exception as e:
 #         return str(e)
+
+# Criar em lote (Batch Insert)
+@escala_bp.route("/batch", methods=["POST"])
+def criar_escala_batch():
+    dados_lista = request.json # Espera uma lista de objetos
+    if not isinstance(dados_lista, list):
+        return "Erro: Esperado uma lista de registros.", 400
+
+    try:
+        for item in dados_lista:
+            sql = text("""
+                INSERT INTO escala (horario, data, matricula, posto_id) 
+                VALUES (:horario, :data, :matricula, :posto)
+            """)
+            db.session.execute(sql, {
+                "horario": item.get("horario"),
+                "data": item.get("data"),
+                "matricula": item.get("matricula"),
+                "posto": item.get("posto")
+            })
+        
+        db.session.commit()
+        return f"{len(dados_lista)} registros inseridos com sucesso", 201
+    except Exception as e:
+        db.session.rollback()
+        return f"Erro ao inserir lote: {str(e)}", 500
 
 # Deletar (Delete)
 @escala_bp.route("/<id>", methods=['DELETE'])
