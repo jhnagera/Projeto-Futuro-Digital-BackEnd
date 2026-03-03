@@ -2,6 +2,7 @@
 .venv/
 venv/
 env/
+.en
 instance/
 
 # Python bytecode
