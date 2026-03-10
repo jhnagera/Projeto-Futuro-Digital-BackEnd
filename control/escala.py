@@ -188,6 +188,52 @@ def get_all_escala():
     except Exception as e:
         return []
 
+# Ler escalas por data específica (para visualização em grid)
+@escala_bp.route('/por-data')
+def get_escala_por_data():
+    data_filtro = request.args.get('data')  # Formato esperado: AAAA-MM-DD
+
+    if not data_filtro:
+        return "Erro: O parâmetro 'data' é obrigatório (ex: ?data=2025-03-10).", 400
+
+    try:
+        datetime.strptime(data_filtro, "%Y-%m-%d")
+    except ValueError:
+        return "Erro: A data deve estar no formato AAAA-MM-DD.", 400
+
+    sql_query = text("""
+        SELECT 
+            e.id,
+            e.horario,
+            e.data,
+            e.matricula,
+            COALESCE(f.apelido, CAST(e.matricula AS VARCHAR)) AS nome_emp,
+            e.posto_id,
+            COALESCE(p.nome, CAST(e.posto_id AS VARCHAR)) AS nome_posto
+        FROM escala e
+        LEFT JOIN funcionarios f ON f.matricula = e.matricula
+        LEFT JOIN postos p ON p.id = e.posto_id
+        WHERE e.data = :data
+        ORDER BY e.horario ASC,
+        CASE 
+            WHEN p.nome LIKE '%Alfa 2%' THEN 1
+            WHEN p.nome LIKE '%Ronda P1%' THEN 2
+            WHEN p.nome LIKE '%Delta 4%' THEN 3
+            WHEN p.nome LIKE '%Alfa 3%' THEN 4
+            WHEN p.nome LIKE '%Ronda P2 e P3%' THEN 5
+            WHEN p.nome LIKE '%Central%' THEN 6
+            ELSE 7
+        END ASC
+    """)
+
+    try:
+        result = db.session.execute(sql_query, {"data": data_filtro})
+        relatorio = result.mappings().all()
+        json_output = [dict(row) for row in relatorio]
+        return json_output
+    except Exception as e:
+        return f"Erro ao buscar escala: {str(e)}", 500
+
 # Atualizar (Update)
 @escala_bp.route("/<id>", methods=["PUT"])
 def atualizar_escala(id):
