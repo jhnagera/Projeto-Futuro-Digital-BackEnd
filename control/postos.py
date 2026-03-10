@@ -2,6 +2,7 @@ from flask import Flask, Blueprint, request
 from sqlalchemy import text
 
 from conf.database import db
+from control.auth import exigir_admin
 
 postos_bp = Blueprint('postos', __name__, url_prefix = '/postos') 
 
@@ -10,6 +11,11 @@ postos_bp = Blueprint('postos', __name__, url_prefix = '/postos')
 # Criar retornando ID (Insert com Returning)
 @postos_bp.route("/", methods=["POST"])
 def criar_postos():
+    # ← Somente admins
+    erro = exigir_admin()
+    if erro:
+        return erro
+
     # 1. Coleta os dados que vieram do front-end
     nome_front = request.form.get("Nome")
     descricao = request.form.get("Descrição")
@@ -136,6 +142,11 @@ def get_all_postos():
 # Atualizar (Update)
 @postos_bp.route("/<id>", methods=["PUT"])
 def atualizar_postos(id):
+    # ← Somente admins
+    erro = exigir_admin()
+    if erro:
+        return erro
+
     # 1. Coleta os dados que vieram do formulário
     nome = request.form.get("Nome")
     descricao = request.form.get("Descrição")
@@ -206,6 +217,11 @@ def atualizar_postos(id):
 # Deletar (Delete)
 @postos_bp.route("/<id>", methods=['DELETE'])
 def delete_postos(id):
+    # ← Somente admins
+    erro = exigir_admin()
+    if erro:
+        return erro
+
     sql = text("DELETE FROM postos WHERE id = :id")
     dados = {"id": id}
 
